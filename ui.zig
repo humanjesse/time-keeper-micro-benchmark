@@ -501,20 +501,85 @@ pub fn handleInput(
                     if (mem.eql(u8, app.input_buffer.items, "/benchmark")) {
                         const markdown_module = @import("markdown");
 
+                        const was_on = app.benchmark_mode;
                         app.benchmark_mode = !app.benchmark_mode;
+
+                        // If turning ON, reset metrics and record start time
+                        if (app.benchmark_mode) {
+                            app.state.benchmark_metrics.reset();
+                            app.state.benchmark_metrics.benchmark_start_time = std.time.milliTimestamp();
+                        }
+
+                        // If turning OFF and was ON, export metrics to JSON
+                        var export_path: ?[]const u8 = null;
+                        if (was_on and !app.benchmark_mode) {
+                            export_path = exportBenchmarkMetrics(app) catch null;
+                        }
+                        defer if (export_path) |p| app.allocator.free(p);
 
                         // Create status message
                         const status_msg = if (app.benchmark_mode)
-                            "[Benchmark Mode: ON] LLM will auto-respond to timer notifications and tool completions."
+                            "[Benchmark Mode: ON] LLM will auto-respond to timer notifications. Metrics tracking started."
+                        else if (export_path) |path|
+                            try std.fmt.allocPrint(app.allocator, "[Benchmark Mode: OFF] Metrics exported to: {s}\nUse /stats to view results.", .{path})
                         else
-                            "[Benchmark Mode: OFF] Normal chat mode restored.";
+                            "[Benchmark Mode: OFF] Normal chat mode restored. Use /stats to view results.";
 
-                        const msg_copy = try app.allocator.dupe(u8, status_msg);
+                        const msg_copy = if (app.benchmark_mode or export_path == null)
+                            try app.allocator.dupe(u8, status_msg)
+                        else
+                            status_msg; // already allocated by allocPrint
                         const processed = try markdown_module.processMarkdown(app.allocator, msg_copy);
 
                         try app.messages.append(app.allocator, .{
                             .role = .system,
                             .content = msg_copy,
+                            .processed_content = processed,
+                            .thinking_expanded = false,
+                            .timestamp = std.time.milliTimestamp(),
+                        });
+
+                        app.input_buffer.clearRetainingCapacity();
+                        should_redraw.* = true;
+                        return false;
+                    }
+
+                    // Check for /stats command - show benchmark metrics
+                    if (mem.eql(u8, app.input_buffer.items, "/stats")) {
+                        const markdown_module = @import("markdown");
+
+                        const metrics = &app.state.benchmark_metrics;
+                        const now = std.time.milliTimestamp();
+                        const duration_ms: i64 = if (metrics.benchmark_start_time) |start|
+                            now - start
+                        else
+                            0;
+                        const duration_secs = @as(f64, @floatFromInt(duration_ms)) / 1000.0;
+
+                        const stats_msg = try std.fmt.allocPrint(
+                            app.allocator,
+                            \\[Benchmark Stats]
+                            \\  set_timer calls:      {d}
+                            \\  kv_set calls:         {d}
+                            \\  get_current_time:     {d}
+                            \\  complete loops:       {d}
+                            \\  duration:             {d:.1}s
+                            \\  benchmark mode:       {s}
+                        ,
+                            .{
+                                metrics.set_timer_calls,
+                                metrics.kv_set_calls,
+                                metrics.get_current_time_calls,
+                                metrics.complete_loops,
+                                duration_secs,
+                                if (app.benchmark_mode) "ON" else "OFF",
+                            },
+                        );
+                        const processed = try markdown_module.processMarkdown(app.allocator, stats_msg);
+
+                        try app.messages.append(app.allocator, .{
+                            .role = .display_only_data,
+                            .content = stats_msg,
                             .processed_content = processed,
                             .thinking_expanded = false,
                             .timestamp = std.time.milliTimestamp(),
@@ -723,3 +788,89 @@ pub fn handleInput(
     return false; // Do not quit
 }
 // --- END: Merged from actions.zig ---
+
+/// Export benchmark metrics to JSON file
+/// Returns the file path on success (caller owns the string)
+fn exportBenchmarkMetrics(app: *app_module.App) ![]const u8 {
+    const metrics = &app.state.benchmark_metrics;
+    const now = std.time.milliTimestamp();
+    const end_time = now;
+    const start_time = metrics.benchmark_start_time orelse now;
+    const duration_secs = @as(f64, @floatFromInt(end_time - start_time)) / 1000.0;
+
+    // Create timestamp for filename
+    const epoch_seconds = std.time.epoch.EpochSeconds{ .secs = @intCast(@divTrunc(now, 1000)) };
+    const day_seconds = epoch_seconds.getDaySeconds();
+    const epoch_day = epoch_seconds.getEpochDay();
+    const year_day = epoch_day.calculateYearDay();
+    const month_day = year_day.calculateMonthDay();
+
+    // Format: YYYYMMDD_HHMMSS
+    const timestamp_str = try std.fmt.allocPrint(
+        app.allocator,
+        "{d:0>4}{d:0>2}{d:0>2}_{d:0>2}{d:0>2}{d:0>2}",
+        .{
+            year_day.year,
+            month_day.month.numeric(),
+            month_day.day_index + 1,
+            day_seconds.getHoursIntoDay(),
+            day_seconds.getMinutesIntoHour(),
+            day_seconds.getSecondsIntoMinute(),
+        },
+    );
+    defer app.allocator.free(timestamp_str);
+
+    // Build output path
+    const home = std.posix.getenv("HOME") orelse return error.NoHomeDir;
+    const dir_path = try std.fs.path.join(app.allocator, &.{ home, ".config", "time-keeper" });
+    defer app.allocator.free(dir_path);
+
+    // Ensure directory exists
+    std.fs.cwd().makePath(dir_path) catch {};
+
+    const filename = try std.fmt.allocPrint(app.allocator, "benchmark_results_{s}.json", .{timestamp_str});
+    defer app.allocator.free(filename);
+
+    const file_path = try std.fs.path.join(app.allocator, &.{ dir_path, filename });
+    errdefer app.allocator.free(file_path);
+
+    // Build JSON content
+    const json_content = try std.fmt.allocPrint(
+        app.allocator,
+        \\{{
+        \\  "session_id": "{s}",
+        \\  "model": "{s}",
+        \\  "benchmark_duration_seconds": {d:.2},
+        \\  "metrics": {{
+        \\    "set_timer_calls": {d},
+        \\    "kv_set_calls": {d},
+        \\    "get_current_time_calls": {d},
+        \\    "complete_loops": {d}
+        \\  }},
+        \\  "timestamps": {{
+        \\    "session_start": {d},
+        \\    "session_end": {d}
+        \\  }}
+        \\}}
+    ,
+        .{
+            timestamp_str,
+            app.config.model,
+            duration_secs,
+            metrics.set_timer_calls,
+            metrics.kv_set_calls,
+            metrics.get_current_time_calls,
+            metrics.complete_loops,
+            start_time,
+            end_time,
+        },
+    );
+    defer app.allocator.free(json_content);
+
+    // Write file
+    const file = try std.fs.cwd().createFile(file_path, .{ .truncate = true });
+    defer file.close();
+    try file.writeAll(json_content);
+
+    return file_path;
+}

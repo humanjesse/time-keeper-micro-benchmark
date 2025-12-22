@@ -1063,6 +1063,8 @@ pub const App = struct {
 
                     // In benchmark mode, auto-trigger LLM after timer notifications
                     if (self.benchmark_mode and !self.streaming_active) {
+                        // Increment complete loop counter - timer fired and we're continuing the loop
+                        self.state.benchmark_metrics.incrementLoops();
                         try self.startStreaming(null);
                     }
                 }

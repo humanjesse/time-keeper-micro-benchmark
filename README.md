@@ -89,7 +89,9 @@ Time-Keeper provides:
 
 ## Configuration
 
-Config: `~/.config/time-keeper/config.json`
+Config: `~/.config/time-keeper/profiles/default.json`
+
+A default config is auto-generated on first run. Example:
 
 ```json
 {
@@ -147,6 +149,7 @@ Linux (tested on x86_64), macOS. Windows not supported.
 
 See [docs/](docs/) for detailed documentation. 
 Please reach out with any questions or concerns!
+Lastly this is retrofit from localharness and building towards a larger benchmark project
 
 ## License
 

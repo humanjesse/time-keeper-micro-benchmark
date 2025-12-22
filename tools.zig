@@ -274,7 +274,10 @@ pub fn executeToolCall(allocator: std.mem.Allocator, tool_call: ollama.ToolCall,
     // Find matching tool and execute
     for (definitions) |def| {
         if (std.mem.eql(u8, def.ollama_tool.function.name, tool_call.function.name)) {
-            return try def.execute(allocator, tool_call.function.arguments, context);
+            const result = try def.execute(allocator, tool_call.function.arguments, context);
+            // Track benchmark metrics for specific tools
+            context.state.benchmark_metrics.incrementToolCall(tool_call.function.name);
+            return result;
         }
     }
 

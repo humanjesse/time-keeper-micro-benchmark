@@ -61,6 +61,37 @@ pub const TimerNotification = struct {
     fired_at: i64, // timestamp when timer expired
 };
 
+/// Benchmark metrics for tracking tool usage and loop completions
+pub const BenchmarkMetrics = struct {
+    set_timer_calls: usize = 0,
+    kv_set_calls: usize = 0,
+    get_current_time_calls: usize = 0,
+    complete_loops: usize = 0,
+    benchmark_start_time: ?i64 = null,
+
+    pub fn reset(self: *BenchmarkMetrics) void {
+        self.set_timer_calls = 0;
+        self.kv_set_calls = 0;
+        self.get_current_time_calls = 0;
+        self.complete_loops = 0;
+        self.benchmark_start_time = null;
+    }
+
+    pub fn incrementToolCall(self: *BenchmarkMetrics, tool_name: []const u8) void {
+        if (std.mem.eql(u8, tool_name, "set_timer")) {
+            self.set_timer_calls += 1;
+        } else if (std.mem.eql(u8, tool_name, "kv_set")) {
+            self.kv_set_calls += 1;
+        } else if (std.mem.eql(u8, tool_name, "get_current_time")) {
+            self.get_current_time_calls += 1;
+        }
+    }
+
+    pub fn incrementLoops(self: *BenchmarkMetrics) void {
+        self.complete_loops += 1;
+    }
+};
+
 /// Session-ephemeral application state
 pub const AppState = struct {
     allocator: mem.Allocator,
@@ -81,6 +112,9 @@ pub const AppState = struct {
     timer_notifications: std.ArrayListUnmanaged(TimerNotification), // Queue of fired timers
     timer_mutex: std.Thread.Mutex, // Protects timer_notifications
 
+    // Benchmark Metrics (for tracking tool usage and loop completions)
+    benchmark_metrics: BenchmarkMetrics,
+
     pub fn init(allocator: mem.Allocator) AppState {
         return .{
             .allocator = allocator,
@@ -98,6 +132,8 @@ pub const AppState = struct {
             // Timer System
             .timer_notifications = .{},
             .timer_mutex = .{},
+            // Benchmark Metrics
+            .benchmark_metrics = .{},
         };
     }
 
