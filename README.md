@@ -48,7 +48,7 @@ Time-Keeper measures **agentic loop sustainability**—the ability to:
 
 ### The Core Loop
 
-(enter benchmark mode with "/benchmark", followed by a message like "start")
+(enter benchmark mode with `/benchmark`, followed by a message like "start"; exit with `/benchmark` again or `/quit`)
 
 ```
 Agent: set_timer(label="cycle_1", duration=30000)
