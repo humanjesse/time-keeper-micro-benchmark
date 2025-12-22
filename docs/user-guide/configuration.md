@@ -1,116 +1,44 @@
-# Configuration Guide
+# Configuration
 
-Time-Keeper can be configured in three ways:
+Time-Keeper configuration options.
 
-1. **Interactive Editor** (`/config` command) - Recommended for most users
-2. **JSON File** (`~/.config/time-keeper/config.json`) - For advanced users and automation
-3. **CLI Arguments** (`--model`, `--ollama-host`) - For quick overrides
+## Config File
 
----
+Location: `~/.config/time-keeper/config.json`
 
-## Interactive Config Editor
+Created automatically on first run.
 
-**The easiest way to configure Time-Keeper.**
-
-### Quick Start
-
-1. Start Time-Keeper: `./time-keeper`
-2. Type: `/config`
-3. Navigate with Tab, edit with Enter
-4. Press Ctrl+S to save
-
-### Features
-
-- ✅ Visual editing (no JSON syntax)
-- ✅ Field validation
-- ✅ Help text for each setting
-- ✅ Provider-specific warnings
-- ✅ Cancel changes safely (Esc)
-
-**See [Features Guide](features.md#interactive-configuration-editor) for detailed usage.**
-
----
-
-## Configuration File
-
-Config file location: `~/.config/time-keeper/config.json`
-
-This file is automatically created on first run with default values. You can edit it directly or use the `/config` command for a visual editor.
-
-## Default Configuration
+## Essential Settings
 
 ```json
 {
   "provider": "ollama",
   "ollama_host": "http://localhost:11434",
-  "ollama_endpoint": "/api/chat",
-  "lmstudio_host": "http://localhost:1234",
-  "lmstudio_auto_start": false,
-  "lmstudio_auto_load_model": false,
-  "lmstudio_gpu_offload": "auto",
-  "lmstudio_ttl": 300,
-  "model": "qwen3-coder:30b",
-  "model_keep_alive": "15m",
-  "num_ctx": 128000,
-  "num_predict": 8192,
-  "enable_thinking": true,
-  "show_tool_json": false,
-  "file_read_small_threshold": 200,
-  "google_search_api_key": null,
-  "google_search_engine_id": null,
-  "editor": ["nvim"],
-  "scroll_lines": 3,
-  "color_status": "\u001b[33m",
-  "color_link": "\u001b[36m",
-  "color_thinking_header": "\u001b[36m",
-  "color_thinking_dim": "\u001b[2m",
-  "color_inline_code_bg": "\u001b[48;5;237m"
+  "model": "qwen3:30b",
+  "num_ctx": 128000
 }
 ```
 
-## Configuration Options
+## Provider Selection
 
-### Provider Selection
+### Ollama (Default)
 
-Time-Keeper supports multiple LLM backends. Choose based on your hardware, preferences, and available models.
-
-#### Ollama (Default)
-
-**Best for:** NVIDIA GPUs, ease of use, quick setup, extended thinking mode
-
-**Configuration:**
 ```json
 {
   "provider": "ollama",
   "ollama_host": "http://localhost:11434",
-  "model": "qwen3-coder:30b"
+  "model": "qwen3:30b"
 }
 ```
 
-**Setup:**
+Setup:
 ```bash
-# Install and start Ollama
-ollama pull qwen3-coder:30b
+ollama pull qwen3:30b
 ollama serve
 ```
 
-**Ollama-Specific Features:**
-- ✅ Extended thinking mode (`enable_thinking: true`)
-- ✅ Model lifecycle control (`model_keep_alive: "15m"`)
-- ✅ API-controlled context size (`num_ctx`)
-- ✅ All standard features
+### LM Studio
 
-**Supported Models:**
-- `qwen3-coder:30b` - Recommended (coding-focused)
-- `llama3.2` - Balanced performance
-- `llama3.2:70b` - Higher quality
-- Any model from [Ollama Library](https://ollama.com/library)
-
-#### LM Studio
-
-**Best for:** AMD GPUs, visual model management, model experimentation
-
-**Configuration:**
 ```json
 {
   "provider": "lmstudio",
@@ -119,362 +47,48 @@ ollama serve
 }
 ```
 
-**Setup:**
-1. Download [LM Studio](https://lmstudio.ai/)
-2. Load a model in the UI
-3. Start the server (Local Server tab)
-4. Verify running on port 1234
+Note: Context size must be set in LM Studio UI.
 
-**Important Notes:**
-- ⚠️ **Context size** must be set in LM Studio UI (not in config file)
-- ⚠️ **Extended thinking mode** is not supported
-- ⚠️ **`model_keep_alive`** parameter is ignored
-- ✅ All tools work (file operations, context management, etc.)
-- ✅ Auto-start and auto-load model features available
-- ✅ Function/tool calling supported
-
-#### Switching Providers
-
-**Using Config Editor (Recommended):**
-1. Type `/config`
-2. Navigate to "Provider" field
-3. Press `←` or `→` to change
-4. Press Ctrl+S to save
-
-**Manual Edit:**
-```bash
-# Edit config file
-$EDITOR ~/.config/time-keeper/config.json
-
-# Change provider field
-{
-  "provider": "lmstudio",  # ← Change this
-  ...
-}
-
-# Restart Time-Keeper
-```
-
----
-
-### Model Settings
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `provider` | string | `"ollama"` | LLM backend: `"ollama"` or `"lmstudio"` |
-| `model` | string | `"qwen3-coder:30b"` | Model name/identifier |
-| `ollama_host` | string | `"http://localhost:11434"` | Ollama server URL |
-| `lmstudio_host` | string | `"http://localhost:1234"` | LM Studio server URL |
-| `model_keep_alive` | string | `"15m"` | Keep model in memory (Ollama only) |
-| `num_ctx` | number | `128000` | Context window size in tokens |
-| `num_predict` | number | `8192` | Max tokens to generate (-1 = unlimited) |
-
-**Example - Switch to LM Studio:**
-```json
-{
-  "provider": "lmstudio",
-  "model": "qwen2.5-coder-7b",
-  "ollama_host": "http://192.168.1.100:11434"
-}
-```
-
-### Editor Settings
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `editor` | array | `["nvim"]` | Command to open editor for notes |
-
-**Examples:**
-```json
-{
-  "editor": ["vim"]
-}
-```
-
-```json
-{
-  "editor": ["code", "--wait"]
-}
-```
-
-```json
-{
-  "editor": ["nano"]
-}
-```
-
-### UI Settings
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `scroll_lines` | number | `3` | Lines to scroll per wheel movement |
-
-**Scroll Behavior:**
-- `1`: Precise, line-by-line scrolling
-- `3`: Default, balanced
-- `5`: Faster scrolling for large conversations
-
-### Web Search (Google Custom Search API)
-
-The `web_search` tool uses the Google Custom Search JSON API to search the web. This requires API credentials.
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `google_search_api_key` | string | `null` | Google Custom Search API key (starts with 'AIza') |
-| `google_search_engine_id` | string | `null` | Programmable Search Engine ID (cx parameter) |
-
-**Setting up Google Custom Search API:**
-
-1. **Get an API Key:**
-   - Visit: https://developers.google.com/custom-search/v1/introduction
-   - Create a project in Google Cloud Console
-   - Enable the Custom Search API
-   - Create credentials (API key)
-
-2. **Create a Programmable Search Engine:**
-   - Visit: https://programmablesearchengine.google.com/
-   - Click "Add" to create a new search engine
-   - Configure search scope (search entire web or specific sites)
-   - Copy the Search Engine ID (cx parameter)
-
-3. **Configure in Time-Keeper:**
-   - Type `/config` to open the configuration editor
-   - Navigate to the "Web Search" section
-   - Enter your API key (will be displayed as `AIza***xyz` when not editing)
-   - Enter your Search Engine ID
-   - Press `Ctrl+S` to save
-
-**Rate Limits:**
-- **Free tier:** 100 queries per day
-- **Paid tier:** $5 per 1,000 queries (up to 10,000/day)
-
-**Example Configuration:**
-```json
-{
-  "google_search_api_key": "AIzaSyC1234567890abcdefghijklmnopqrstuvwx",
-  "google_search_engine_id": "a1234567890bcdefg"
-}
-```
-
-**Note:** API credentials are stored unencrypted in your config file at `~/.config/time-keeper/profiles/{profile}.json`. File permissions protect the file on single-user systems.
-
-### ⚠️ Removed Settings
-
-**These settings have been completely removed from the codebase:**
-
-| Option | Status | Notes |
-|--------|--------|-------|
-| `graph_rag_enabled` | ❌ Removed | GraphRAG system removed |
-| `embedding_model` | ❌ Removed | Vector store not used |
-| `indexing_model` | ❌ Removed | No longer applicable |
-| `max_chunks_in_history` | ❌ Removed | No compression system |
-| `zvdb_path` | ❌ Removed | Vector store not used |
-
-The application now uses a simple message storage system.
-
-### Color Settings
-
-All color settings use ANSI escape codes.
+## All Options
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `color_status` | `"\u001b[33m"` | Status bar color (yellow) |
-| `color_link` | `"\u001b[36m"` | Link text color (cyan) |
-| `color_thinking_header` | `"\u001b[36m"` | Thinking block header color (cyan) |
-| `color_thinking_dim` | `"\u001b[2m"` | Thinking content color (dim) |
-| `color_inline_code_bg` | `"\u001b[48;5;237m"` | Inline code background (grey) |
+| `provider` | `"ollama"` | `"ollama"` or `"lmstudio"` |
+| `model` | `"qwen3:30b"` | Model name |
+| `ollama_host` | `"http://localhost:11434"` | Ollama server URL |
+| `lmstudio_host` | `"http://localhost:1234"` | LM Studio server URL |
+| `num_ctx` | `128000` | Context window size |
+| `num_predict` | `8192` | Max tokens to generate |
+| `model_keep_alive` | `"15m"` | Keep model loaded (Ollama) |
+| `enable_thinking` | `true` | Show thinking blocks |
 
-**Common ANSI Color Codes:**
-```
-Black:   \u001b[30m
-Red:     \u001b[31m
-Green:   \u001b[32m
-Yellow:  \u001b[33m
-Blue:    \u001b[34m
-Magenta: \u001b[35m
-Cyan:    \u001b[36m
-White:   \u001b[37m
-
-Bright variants: \u001b[90m - \u001b[97m
-Dim: \u001b[2m
-Bold: \u001b[1m
-```
-
-**Example Custom Colors:**
-```json
-{
-  "color_status": "\u001b[32m",
-  "color_link": "\u001b[94m",
-  "color_thinking_header": "\u001b[95m"
-}
-```
-
-## Command-Line Overrides
-
-Override config file settings with CLI arguments:
+## CLI Overrides
 
 ```bash
-./zig-out/bin/time-keeper --model llama3.2:70b --ollama-host http://localhost:11434
+./time-keeper --model llama3.2:70b --ollama-host http://localhost:11434
 ```
 
-**Available Arguments:**
-- `--model <name>`: Override model
-- `--ollama-host <url>`: Override Ollama server URL
-
-**Priority:**
-1. Command-line arguments (highest)
-2. Config file settings
-3. Built-in defaults (lowest)
+CLI arguments override config file settings.
 
 ## Permission Policies
 
-Permission policies are stored separately from configuration:
+Stored in: `~/.config/time-keeper/policies.json`
 
-**Location:** `~/.config/time-keeper/policies.json`
+When approving tool permissions with "Remember", policies persist here.
 
-**Format:**
-```json
-{
-  "policies": [
-    {
-      "tool_name": "read_file",
-      "decision": "always_allow",
-      "created_at": 1705680000000
-    }
-  ]
-}
+## Interactive Editor
+
+Type `/config` to open visual editor. Navigate with Tab, save with Ctrl+S.
+
+## Troubleshooting
+
+**Ollama not connecting:**
+```bash
+curl http://localhost:11434/api/tags  # Verify Ollama running
 ```
-
-**Policy Types:**
-- `always_allow`: Auto-approve this tool
-- `always_deny`: Auto-deny this tool
-- Session grants: Not persisted (lost on quit)
-
-**Managing Policies:**
-- Policies are created through the permission prompt UI
-- Select "Remember" option to persist a policy
-- Manually edit `policies.json` to remove policies
-- Delete `policies.json` to reset all policies
-
-## Conversation Database (Experimental)
-
-The conversation persistence system automatically saves all chat history to a SQLite database.
-
-**Location:** `~/.config/time-keeper/conversations.db`
-
-**What's stored:**
-- User and assistant messages
-- Tool calls with arguments
-- Tool execution results
-- Agent execution metadata
-- Session state
-
-**Current status:**
-- ⚠️ Conversations are saved but not yet loadable
-- Future releases will add conversation browsing and restoration
-- Safe to delete if you want to clear history: `rm ~/.config/time-keeper/conversations.db`
-
-**Technical details:**
-- SQLite database with WAL mode (Write-Ahead Logging)
-- 7-table schema with foreign key constraints
-- Minimal performance impact - real-time persistence
-
-## Environment-Specific Configs
-
-### Development
-```json
-{
-  "model": "llama3.2:1b",
-  "ollama_host": "http://localhost:11434"
-}
-```
-
-### Remote Server
-```json
-{
-  "model": "llama3.2:70b",
-  "ollama_host": "http://my-server:11434"
-}
-```
-
-### Custom Colors (Dark Theme)
-```json
-{
-  "color_status": "\u001b[35m",
-  "color_link": "\u001b[36m",
-  "color_thinking_header": "\u001b[32m",
-  "color_thinking_dim": "\u001b[2m",
-  "color_inline_code_bg": "\u001b[48;5;234m"
-}
-```
-
-## Configuration Tips
-
-### Performance Tuning
-
-**For slower machines:**
-```json
-{
-  "model": "llama3.2:1b",
-  "scroll_lines": 5
-}
-```
-
-**For powerful machines:**
-```json
-{
-  "model": "llama3.2:70b"
-}
-```
-
-### Terminal Compatibility
-
-If colors look wrong:
-1. Check your terminal supports 256 colors: `echo $TERM`
-2. Should be `xterm-256color` or similar
-3. Use simpler color codes if needed
-
-### Troubleshooting
-
-**Config file not loading:**
-- Check file exists: `ls ~/.config/time-keeper/config.json`
-- Verify JSON syntax: `cat ~/.config/time-keeper/config.json | jq .`
-- Check file permissions: `ls -la ~/.config/time-keeper/`
-
-**Ollama connection issues:**
-- Verify Ollama is running: `curl http://localhost:11434/api/tags`
-- Check `ollama_host` setting matches your setup
-- Try CLI override: `--ollama-host http://localhost:11434`
 
 **Model not found:**
-- List available models: `ollama list`
-- Pull model: `ollama pull llama3.2`
-- Check model name spelling in config
-
-## Advanced Configuration
-
-### Multiple Configs
-
-Switch between configs by using different config directories:
-
 ```bash
-# Development config
-XDG_CONFIG_HOME=~/.config-dev ./time-keeper
-
-# Production config
-XDG_CONFIG_HOME=~/.config-prod ./time-keeper
+ollama list   # See available models
+ollama pull qwen3:30b  # Pull model
 ```
-
-### Resetting Configuration
-
-Delete config file to regenerate defaults:
-
-```bash
-rm ~/.config/time-keeper/config.json
-./time-keeper  # Will create new default config
-```
-
-## See Also
-
-- [Installation Guide](installation.md) - Setup and building
-- [Features Guide](features.md) - Complete feature documentation
