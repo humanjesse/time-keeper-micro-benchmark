@@ -1,0 +1,79 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Cache Zig
+        id: cache-zig
+        uses: actions/cache@v4
+        with:
+          path: ~/zig
+          key: zig-linux-0.14.0
+
+      - name: Setup Zig
+        if: steps.cache-zig.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/zig
+          cd ~/zig
+          wget https://ziglang.org/download/0.14.0/zig-x86_64-linux-0.14.0.tar.xz
+          tar -xf zig-x86_64-linux-0.14.0.tar.xz --strip-components=1
+
+      - name: Add Zig to PATH
+        run: echo "$HOME/zig" >> $GITHUB_PATH
+
+      - name: Build Linux x86_64
+        run: |
+          zig build -Doptimize=ReleaseSafe
+          mv zig-out/bin/time-keeper time-keeper-linux-x86_64
+
+      - name: Generate checksums
+        run: |
+          sha256sum time-keeper-linux-x86_64 > time-keeper-linux-x86_64.sha256
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            time-keeper-linux-x86_64
+            time-keeper-linux-x86_64.sha256
+          body: |
+            ## Time-Keeper ${{ github.ref_name }}
+
+            ### Platform Support
+            - **Tested:** Linux x86_64 (Arch Linux, kernel 6.17+)
+            - **Should work:** Other Linux distributions
+            - **May work:** macOS (untested - please report!)
+
+            ### Installation
+            1. Download `time-keeper-linux-x86_64`
+            2. Make it executable: `chmod +x time-keeper-linux-x86_64`
+            3. Run: `./time-keeper-linux-x86_64`
+            4. Optional: Move to PATH: `mv time-keeper-linux-x86_64 ~/.local/bin/time-keeper`
+
+            ### Verify Download
+            ```bash
+            sha256sum -c time-keeper-linux-x86_64.sha256
+            ```
+
+            ### Build from Source
+            If the binary doesn't work for your system:
+            ```bash
+            git clone https://github.com/${{ github.repository }}
+            cd time-keeper-micro-benchmark
+            zig build
+            ./zig-out/bin/time-keeper
+            ```
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,65 @@
+# Zig build artifacts
+.zig-cache/
+zig-out/
+
+# Personal notes
+my_notes/
+
+# Development documentation
+EMOJI_SUPPORT.md
+UPGRADE_NOTES.md
+
+# Archive folder for old test files
+archive/
+
+# Editor/IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+
+# Test executables
+simple_print
+test_stdout*
+http_example
+http_post_example
+http_post_example_0_15
+http_test
+test_http_post_working
+test_http_simple_post
+
+# Main binary
+app
+
+# Development documentation and examples
+HTTP_CLIENT_GUIDE.md
+ZIG_0_15_HTTP_GUIDE.md
+complete_example.zig
+ollama_client_example.zig
+http_example.zig
+http_post_example_0_15.zig
+
+# Time-Keeper data files
+.time-keeper/
+
+# Test files
+test_insert.txt
+testingdoc.md
+package-lock.json
+
+# Old files (removed)
+sqlite.zig
+conversation_db.zig
+
+# Reference documents (not part of source)
+vendingbench.pdf
