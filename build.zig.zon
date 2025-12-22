@@ -2,7 +2,7 @@
     .name = .time_keeper,
     .version = "0.0.1",
     .fingerprint = 0x255d096202372f25,
-    .minimum_zig_version = "0.14.0",
+    .minimum_zig_version = "0.15.2",
     .dependencies = .{
         .zvdb = .{
             .url = "git+https://github.com/humanjesse/zvdb.git#main",

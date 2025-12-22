@@ -5,7 +5,7 @@ This guide covers building Time-Keeper from source for development or if pre-bui
 ## Prerequisites
 
 ### Required
-- **Zig compiler** (version 0.14.0 or later)
+- **Zig compiler** (version 0.15.2 or later)
 - **Ollama** - must be running locally
 - **POSIX-compatible system** (Linux or macOS)
 
@@ -13,10 +13,10 @@ This guide covers building Time-Keeper from source for development or if pre-bui
 
 #### Linux
 ```bash
-# Download Zig 0.14.0
-wget https://ziglang.org/download/0.14.0/zig-linux-x86_64-0.14.0.tar.xz
-tar -xf zig-linux-x86_64-0.14.0.tar.xz
-sudo mv zig-linux-x86_64-0.14.0 /opt/zig
+# Download Zig 0.15.2
+wget https://ziglang.org/download/0.15.2/zig-linux-x86_64-0.15.2.tar.xz
+tar -xf zig-linux-x86_64-0.15.2.tar.xz
+sudo mv zig-linux-x86_64-0.15.2 /opt/zig
 
 # Add to PATH (add to ~/.bashrc or ~/.zshrc)
 export PATH=$PATH:/opt/zig
@@ -28,17 +28,17 @@ export PATH=$PATH:/opt/zig
 brew install zig
 
 # Or download directly
-wget https://ziglang.org/download/0.14.0/zig-macos-x86_64-0.14.0.tar.xz
+wget https://ziglang.org/download/0.15.2/zig-macos-x86_64-0.15.2.tar.xz
 # (for Intel)
 # or
-wget https://ziglang.org/download/0.14.0/zig-macos-aarch64-0.14.0.tar.xz
+wget https://ziglang.org/download/0.15.2/zig-macos-aarch64-0.15.2.tar.xz
 # (for Apple Silicon)
 ```
 
 #### Verify Installation
 ```bash
 zig version
-# Should output: 0.14.0 or later
+# Should output: 0.15.2 or later
 ```
 
 ### Installing Ollama
@@ -164,7 +164,7 @@ rm -rf zig-cache/ zig-out/
 - Verify: `which zig`
 
 #### Version Mismatch
-- Time-Keeper requires Zig 0.14.0+
+- Time-Keeper requires Zig 0.15.2+
 - Check: `zig version`
 - Download correct version from: https://ziglang.org/download/
 

@@ -17,7 +17,7 @@ The benchmark asks agents to set timers, wait for them to fire, log the time, an
 
 ### Prerequisites
 
-- **Zig** (0.14.0 or later)
+- **Zig** (0.15.2 or later)
 - **LLM Provider**: Either **Ollama** or **LM Studio** running locally
 - Any ANSI-compatible terminal
 
