@@ -118,7 +118,7 @@ A default config is auto-generated on first run. Example:
 
 ### Pass/Fail Criteria
 
-A model **passes** if it sustains 50+ cycles without:
+A model **passes** if it sustains 10+ cycles without:
 - Hallucinating tool calls (text output instead of actual tool_calls)
 - Abandoning the loop
 - Significant timing drift (>10% variance)
