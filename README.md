@@ -20,6 +20,7 @@ The benchmark asks agents to set timers, wait for them to fire, log the time, an
 - **Zig** (0.15.2 or later)
 - **LLM Provider**: Either **Ollama** or **LM Studio** running locally
 - Any ANSI-compatible terminal
+- Linux / Mac compatible
 
 ### Installation
 
@@ -29,9 +30,12 @@ ollama pull qwen3:30b
 ollama serve
 
 # Build and run
-zig build
-./zig-out/bin/time-keeper
+git clone https://github.com/humanjesse/time-keeper-micro-benchmark.git
+cd time-keeper-micro-benchmark
+zig build run
 ```
+
+Use `/config` inside the TUI to set variables (or ask an agent to help you configure it).
 
 ## What It Tests
 
@@ -44,6 +48,8 @@ Time-Keeper measures **agentic loop sustainability**—the ability to:
 
 ### The Core Loop
 
+(enter benchmark mode with "/benchmark", followed by a message like "start")
+
 ```
 Agent: set_timer(label="cycle_1", duration=30000)
 [30 seconds pass]
@@ -53,7 +59,7 @@ Agent: set_timer(label="cycle_2", duration=30000)
 [repeat forever]
 ```
 
-### Failure Modes Detected
+### Potential Failure Modes
 
 | Failure Type | Description |
 |--------------|-------------|
@@ -79,6 +85,7 @@ Time-Keeper provides:
 | `kv_set/kv_get` | Key-value store for structured data |
 | `scratchpad_*` | Temporary notes and working memory |
 | `vector_*` | Semantic search over stored information |
+| additional tools | hold over from localharness |
 
 ## Configuration
 
@@ -91,6 +98,8 @@ Config: `~/.config/time-keeper/config.json`
   "model": "qwen3:30b"
 }
 ```
+
+*Tip: Use `/config` inside the TUI for visual editing, or ask an LLM to help configure it.*
 
 **CLI options:** `--model`, `--ollama-host`, `--help`
 
@@ -136,7 +145,8 @@ Linux (tested on x86_64), macOS. Windows not supported.
 
 ## Documentation
 
-See [docs/](docs/) for detailed documentation.
+See [docs/](docs/) for detailed documentation. 
+Please reach out with any questions or concerns!
 
 ## License
 
