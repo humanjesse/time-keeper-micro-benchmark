@@ -1,0 +1,15 @@
+{
+  "session_id": "20251222_202447",
+  "model": "mistralai/ministral-3-14b-reasoning",
+  "benchmark_duration_seconds": 785.66,
+  "metrics": {
+    "set_timer_calls": 11,
+    "kv_set_calls": 10,
+    "get_current_time_calls": 10,
+    "complete_loops": 10
+  },
+  "timestamps": {
+    "session_start": 1766434302060,
+    "session_end": 1766435087716
+  }
+}

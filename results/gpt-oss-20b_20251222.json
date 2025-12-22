@@ -1,0 +1,15 @@
+{
+  "session_id": "20251222_200902",
+  "model": "openai/gpt-oss-20b",
+  "benchmark_duration_seconds": 195.99,
+  "metrics": {
+    "set_timer_calls": 3,
+    "kv_set_calls": 2,
+    "get_current_time_calls": 3,
+    "complete_loops": 3
+  },
+  "timestamps": {
+    "session_start": 1766433946549,
+    "session_end": 1766434142539
+  }
+}

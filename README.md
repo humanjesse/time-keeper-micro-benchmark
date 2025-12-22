@@ -37,6 +37,15 @@ zig build run
 
 Use `/config` inside the TUI to set variables (or ask an agent to help you configure it).
 
+## Results
+
+| Model | Loops | Duration | Status |
+|-------|-------|----------|--------|
+| mistralai/ministral-3-14b-reasoning | 10 | ~13 min | Sustained |
+| openai/gpt-oss-20b | 3 | ~3 min | Limited |
+
+See [RESULTS.md](RESULTS.md) for full results and contribution guidelines.
+
 ## What It Tests
 
 Time-Keeper measures **agentic loop sustainability**—the ability to:
@@ -123,12 +132,7 @@ A model **passes** if it sustains 50+ cycles without:
 
 ### Contributing Results
 
-We welcome community-contributed benchmark results. Please include:
-- Model name and version
-- Provider (Ollama, LM Studio, etc.)
-- Number of cycles before failure (or "sustained N cycles")
-- Failure mode if applicable
-- Hardware specs (optional but helpful)
+We welcome community-contributed benchmark results! See [RESULTS.md](RESULTS.md) for submission guidelines.
 
 ## Why This Matters
 
