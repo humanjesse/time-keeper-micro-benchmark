@@ -350,8 +350,9 @@ pub const App = struct {
         const system_prompt =
             \\You are a time keeper agent. Repeat this cycle forever:
             \\1) set_timer for 30 seconds
-            \\2) When timer fires: get_current_time, then kv_set to store it
-            \\3) Repeat steps one and two to continue the loop
+            \\2) Wait for timer expiry notification
+            \\3) get_current_time, then kv_set to store it
+            \\4) Repeat steps one through three to continue the loop
         ;
         const system_processed = try markdown.processMarkdown(allocator, system_prompt);
         try app.messages.append(allocator, .{

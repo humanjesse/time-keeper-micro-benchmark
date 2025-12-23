@@ -1,0 +1,15 @@
+{
+  "session_id": "20251223_001217",
+  "model": "essentialai/rnj-1",
+  "benchmark_duration_seconds": 176.93,
+  "metrics": {
+    "set_timer_calls": 1,
+    "kv_set_calls": 1,
+    "get_current_time_calls": 1,
+    "complete_loops": 1
+  },
+  "timestamps": {
+    "session_start": 1766448560415,
+    "session_end": 1766448737340
+  }
+}

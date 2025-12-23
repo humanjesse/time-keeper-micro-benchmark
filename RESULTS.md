@@ -8,6 +8,7 @@ Community-contributed benchmark results for Time-Keeper agentic loop sustainabil
 |-------|----------|-------|--------------|--------------|--------|
 | mistralai/ministral-3-14b-reasoning | LM Studio | 10 | 786 | ~79 | Sustained |
 | openai/gpt-oss-20b | LM Studio | 3 | 196 | ~65 | Limited |
+| essentialai/rnj-1 | LM Studio | 1 | 177 | ~177 | Limited |
 
 ### Status Legend
 
