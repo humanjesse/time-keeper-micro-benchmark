@@ -90,6 +90,91 @@ pub const BenchmarkMetrics = struct {
     pub fn incrementLoops(self: *BenchmarkMetrics) void {
         self.complete_loops += 1;
     }
+
+    /// Export benchmark metrics to JSON file
+    /// Returns the file path on success (caller owns the string)
+    pub fn exportToJson(self: *const BenchmarkMetrics, allocator: mem.Allocator, model: []const u8) ![]const u8 {
+        const now = std.time.milliTimestamp();
+        const end_time = now;
+        const start_time = self.benchmark_start_time orelse now;
+        const duration_secs = @as(f64, @floatFromInt(end_time - start_time)) / 1000.0;
+
+        // Create timestamp for filename
+        const epoch_seconds = std.time.epoch.EpochSeconds{ .secs = @intCast(@divTrunc(now, 1000)) };
+        const day_seconds = epoch_seconds.getDaySeconds();
+        const epoch_day = epoch_seconds.getEpochDay();
+        const year_day = epoch_day.calculateYearDay();
+        const month_day = year_day.calculateMonthDay();
+
+        // Format: YYYYMMDD_HHMMSS
+        const timestamp_str = try std.fmt.allocPrint(
+            allocator,
+            "{d:0>4}{d:0>2}{d:0>2}_{d:0>2}{d:0>2}{d:0>2}",
+            .{
+                year_day.year,
+                month_day.month.numeric(),
+                month_day.day_index + 1,
+                day_seconds.getHoursIntoDay(),
+                day_seconds.getMinutesIntoHour(),
+                day_seconds.getSecondsIntoMinute(),
+            },
+        );
+        defer allocator.free(timestamp_str);
+
+        // Build output path
+        const home = std.posix.getenv("HOME") orelse return error.NoHomeDir;
+        const dir_path = try std.fs.path.join(allocator, &.{ home, ".config", "time-keeper" });
+        defer allocator.free(dir_path);
+
+        // Ensure directory exists
+        std.fs.cwd().makePath(dir_path) catch {};
+
+        const filename = try std.fmt.allocPrint(allocator, "benchmark_results_{s}.json", .{timestamp_str});
+        defer allocator.free(filename);
+
+        const file_path = try std.fs.path.join(allocator, &.{ dir_path, filename });
+        errdefer allocator.free(file_path);
+
+        // Build JSON content
+        const json_content = try std.fmt.allocPrint(
+            allocator,
+            \\{{
+            \\  "session_id": "{s}",
+            \\  "model": "{s}",
+            \\  "benchmark_duration_seconds": {d:.2},
+            \\  "metrics": {{
+            \\    "set_timer_calls": {d},
+            \\    "kv_set_calls": {d},
+            \\    "get_current_time_calls": {d},
+            \\    "complete_loops": {d}
+            \\  }},
+            \\  "timestamps": {{
+            \\    "session_start": {d},
+            \\    "session_end": {d}
+            \\  }}
+            \\}}
+        ,
+            .{
+                timestamp_str,
+                model,
+                duration_secs,
+                self.set_timer_calls,
+                self.kv_set_calls,
+                self.get_current_time_calls,
+                self.complete_loops,
+                start_time,
+                end_time,
+            },
+        );
+        defer allocator.free(json_content);
+
+        // Write file
+        const file = try std.fs.cwd().createFile(file_path, .{ .truncate = true });
+        defer file.close();
+        try file.writeAll(json_content);
+
+        return file_path;
+    }
 };
 
 /// Session-ephemeral application state

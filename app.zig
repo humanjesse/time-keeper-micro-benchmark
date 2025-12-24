@@ -350,7 +350,7 @@ pub const App = struct {
         const system_prompt =
             \\You are a time keeper agent. Repeat this cycle forever:
             \\1) set_timer for 30 seconds
-            \\2) Wait for timer expiry notification
+            \\2) Wait for "[EVENT: TIMER EXPIRED]" from the user
             \\3) get_current_time, then kv_set to store it
             \\4) Repeat steps one through three to continue the loop
         ;
@@ -1066,7 +1066,54 @@ pub const App = struct {
                     if (self.benchmark_mode and !self.streaming_active) {
                         // Increment complete loop counter - timer fired and we're continuing the loop
                         self.state.benchmark_metrics.incrementLoops();
-                        try self.startStreaming(null);
+
+                        // Auto-stop if configured limit reached (0 = unlimited)
+                        if (self.config.benchmark_max_loops > 0 and
+                            self.state.benchmark_metrics.complete_loops >= self.config.benchmark_max_loops)
+                        {
+                            self.benchmark_mode = false;
+
+                            // Export metrics
+                            const export_path = self.state.benchmark_metrics.exportToJson(
+                                self.allocator,
+                                self.config.model,
+                            ) catch null;
+                            defer if (export_path) |p| self.allocator.free(p);
+
+                            // Create completion message
+                            const metrics = &self.state.benchmark_metrics;
+                            const duration_secs = if (metrics.benchmark_start_time) |start|
+                                @as(f64, @floatFromInt(std.time.milliTimestamp() - start)) / 1000.0
+                            else
+                                0.0;
+
+                            const completion_msg = if (export_path) |path|
+                                try std.fmt.allocPrint(
+                                    self.allocator,
+                                    "[Benchmark Complete] {d} loops finished in {d:.1}s. Results exported to: {s}",
+                                    .{ metrics.complete_loops, duration_secs, path },
+                                )
+                            else
+                                try std.fmt.allocPrint(
+                                    self.allocator,
+                                    "[Benchmark Complete] {d} loops finished in {d:.1}s. (Export failed)",
+                                    .{ metrics.complete_loops, duration_secs },
+                                );
+
+                            const completion_processed = try markdown.processMarkdown(self.allocator, completion_msg);
+                            try self.messages.append(self.allocator, .{
+                                .role = .display_only_data,
+                                .content = completion_msg,
+                                .processed_content = completion_processed,
+                                .thinking_expanded = false,
+                                .timestamp = std.time.milliTimestamp(),
+                            });
+
+                            _ = try message_renderer.redrawScreen(self);
+                            self.updateCursorToBottom();
+                        } else {
+                            try self.startStreaming(null);
+                        }
                     }
                 }
             }

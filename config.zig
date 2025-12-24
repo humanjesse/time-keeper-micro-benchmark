@@ -39,6 +39,8 @@ pub const Config = struct {
     google_search_engine_id: ?[]const u8 = null, // Programmable Search Engine ID (cx parameter)
     // Time-Keeper embeddings model for vector memory tool
     embeddings_model: []const u8 = "nomic-embed-text", // Embeddings model for vector memory (requires: ollama pull nomic-embed-text)
+    // Benchmark settings
+    benchmark_max_loops: usize = 10, // Auto-stop benchmark after N loops (0 = unlimited)
 
     /// Validate configuration values and warn about incompatibilities
     pub fn validate(self: *const Config) !void {
@@ -209,6 +211,7 @@ pub const ConfigFile = struct {
     google_search_api_key: ?[]const u8 = null,
     google_search_engine_id: ?[]const u8 = null,
     embeddings_model: ?[]const u8 = null,
+    benchmark_max_loops: ?usize = null,
 };
 
 /// JSON-serializable policy structure
@@ -433,6 +436,10 @@ pub fn loadConfigFromFile(allocator: mem.Allocator) !Config {
     if (parsed.value.embeddings_model) |embeddings_model| {
         allocator.free(config.embeddings_model);
         config.embeddings_model = try allocator.dupe(u8, embeddings_model);
+    }
+
+    if (parsed.value.benchmark_max_loops) |benchmark_max_loops| {
+        config.benchmark_max_loops = benchmark_max_loops;
     }
 
     // Validate configuration before returning

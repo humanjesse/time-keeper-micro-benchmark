@@ -513,7 +513,7 @@ pub fn handleInput(
                         // If turning OFF and was ON, export metrics to JSON
                         var export_path: ?[]const u8 = null;
                         if (was_on and !app.benchmark_mode) {
-                            export_path = exportBenchmarkMetrics(app) catch null;
+                            export_path = app.state.benchmark_metrics.exportToJson(app.allocator, app.config.model) catch null;
                         }
                         defer if (export_path) |p| app.allocator.free(p);
 
@@ -532,7 +532,7 @@ pub fn handleInput(
                         const processed = try markdown_module.processMarkdown(app.allocator, msg_copy);
 
                         try app.messages.append(app.allocator, .{
-                            .role = .system,
+                            .role = .display_only_data,
                             .content = msg_copy,
                             .processed_content = processed,
                             .thinking_expanded = false,
@@ -788,89 +788,3 @@ pub fn handleInput(
     return false; // Do not quit
 }
 // --- END: Merged from actions.zig ---
-
-/// Export benchmark metrics to JSON file
-/// Returns the file path on success (caller owns the string)
-fn exportBenchmarkMetrics(app: *app_module.App) ![]const u8 {
-    const metrics = &app.state.benchmark_metrics;
-    const now = std.time.milliTimestamp();
-    const end_time = now;
-    const start_time = metrics.benchmark_start_time orelse now;
-    const duration_secs = @as(f64, @floatFromInt(end_time - start_time)) / 1000.0;
-
-    // Create timestamp for filename
-    const epoch_seconds = std.time.epoch.EpochSeconds{ .secs = @intCast(@divTrunc(now, 1000)) };
-    const day_seconds = epoch_seconds.getDaySeconds();
-    const epoch_day = epoch_seconds.getEpochDay();
-    const year_day = epoch_day.calculateYearDay();
-    const month_day = year_day.calculateMonthDay();
-
-    // Format: YYYYMMDD_HHMMSS
-    const timestamp_str = try std.fmt.allocPrint(
-        app.allocator,
-        "{d:0>4}{d:0>2}{d:0>2}_{d:0>2}{d:0>2}{d:0>2}",
-        .{
-            year_day.year,
-            month_day.month.numeric(),
-            month_day.day_index + 1,
-            day_seconds.getHoursIntoDay(),
-            day_seconds.getMinutesIntoHour(),
-            day_seconds.getSecondsIntoMinute(),
-        },
-    );
-    defer app.allocator.free(timestamp_str);
-
-    // Build output path
-    const home = std.posix.getenv("HOME") orelse return error.NoHomeDir;
-    const dir_path = try std.fs.path.join(app.allocator, &.{ home, ".config", "time-keeper" });
-    defer app.allocator.free(dir_path);
-
-    // Ensure directory exists
-    std.fs.cwd().makePath(dir_path) catch {};
-
-    const filename = try std.fmt.allocPrint(app.allocator, "benchmark_results_{s}.json", .{timestamp_str});
-    defer app.allocator.free(filename);
-
-    const file_path = try std.fs.path.join(app.allocator, &.{ dir_path, filename });
-    errdefer app.allocator.free(file_path);
-
-    // Build JSON content
-    const json_content = try std.fmt.allocPrint(
-        app.allocator,
-        \\{{
-        \\  "session_id": "{s}",
-        \\  "model": "{s}",
-        \\  "benchmark_duration_seconds": {d:.2},
-        \\  "metrics": {{
-        \\    "set_timer_calls": {d},
-        \\    "kv_set_calls": {d},
-        \\    "get_current_time_calls": {d},
-        \\    "complete_loops": {d}
-        \\  }},
-        \\  "timestamps": {{
-        \\    "session_start": {d},
-        \\    "session_end": {d}
-        \\  }}
-        \\}}
-    ,
-        .{
-            timestamp_str,
-            app.config.model,
-            duration_secs,
-            metrics.set_timer_calls,
-            metrics.kv_set_calls,
-            metrics.get_current_time_calls,
-            metrics.complete_loops,
-            start_time,
-            end_time,
-        },
-    );
-    defer app.allocator.free(json_content);
-
-    // Write file
-    const file = try std.fs.cwd().createFile(file_path, .{ .truncate = true });
-    defer file.close();
-    try file.writeAll(json_content);
-
-    return file_path;
-}

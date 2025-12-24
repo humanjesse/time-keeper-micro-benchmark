@@ -1,0 +1,15 @@
+{
+  "session_id": "20251224_035451",
+  "model": "qwen/qwen3-vl-8b",
+  "benchmark_duration_seconds": 638.65,
+  "metrics": {
+    "set_timer_calls": 10,
+    "kv_set_calls": 9,
+    "get_current_time_calls": 9,
+    "complete_loops": 10
+  },
+  "timestamps": {
+    "session_start": 1766547852616,
+    "session_end": 1766548491265
+  }
+}
