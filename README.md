@@ -45,6 +45,7 @@ Use `/config` inside the TUI to set variables (or ask an agent to help you confi
 | mistralai/ministral-3-14b-reasoning | 10 | ~13 min | Sustained |
 | openai/gpt-oss-20b | 3 | ~3 min | Limited |
 | essentialai/rnj-1 | 1 | ~3 min | Limited |
+| ibm/granite-4-h-tiny | 0 | ~1 min | Limited |
 
 See [RESULTS.md](RESULTS.md) for full results and contribution guidelines.
 
