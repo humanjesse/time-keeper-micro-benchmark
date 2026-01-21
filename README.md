@@ -1,6 +1,6 @@
 # Time-Keeper
 
-**Agentic Loop Sustainability Micro-Benchmark** - A focused benchmark for testing LLM agents' ability to maintain reliable tool-calling loops over extended periods.
+**Agentic Loop Sustainability Micro-Benchmark** - A focused benchmark for testing LLM agents' ability to maintain reliable tool-calling loops over extended periods (in a sliding context window).
 
 ## Overview
 
